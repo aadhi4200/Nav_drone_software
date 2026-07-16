@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { uploadWaypoints, abortMission, returnHome, resetMission, getMissionStatus, armDrone, disarmDrone, takeoffDrone, landDrone, manualNudge, ManualNudgeCmd, generateMarker, setHome, getHome, getMode, getTravelLog, getGeofence, setGeofence, clearGeofence, ApiError } from './api';
+import { uploadWaypoints, abortMission, returnHome, resetMission, getMissionStatus, armDrone, disarmDrone, takeoffDrone, landDrone, manualNudge, ManualNudgeCmd, generateMarker, setHome, getHome, getMode, getTravelLog, getGeofence, setGeofence, clearGeofence, ApiError, API_BASE } from './api';
+import BackendSettings from './components/BackendSettings';
 // NOTE: We import our api functions but rename the local startMission
 // to avoid conflict with the imported one
 import { startMission as ros2Start } from './api';
@@ -82,6 +83,9 @@ export default function App() {
   // until the operator actually picks one (map click or manual entry).
   const [destLoc,    setDestLoc]    = useState<LatLng | null>(null);
   const [activePage, setActivePage] = useState<'mission' | 'testbench'>('mission');
+  const [showBackendSettings, setShowBackendSettings] = useState(false);
+  // Host:port only — the full URL is in the chip tooltip and settings panel.
+  const backendHost = (() => { try { return new URL(API_BASE).host; } catch { return API_BASE; } })();
   const [dronePos,   setDronePos]   = useState(() => {
     const cached = readCachedPosition();
     return cached ? { ...cached, heading: 0 } : { lat: 9.965800, lng: 76.242100, heading: 0 };
@@ -951,6 +955,17 @@ export default function App() {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse" />
               PORTAL SECURE
             </span>
+            {/* Configured backend address — always visible so it's never
+                ambiguous which machine the dashboard is talking to (Electron
+                packaging task §2.2). Click to change it. */}
+            <button
+              onClick={() => setShowBackendSettings(true)}
+              title={`Backend: ${API_BASE} — click to change`}
+              className="text-[10px] font-mono shrink-0 px-2.5 py-1 bg-[#141417] border border-white/10 text-[#9a9aa2] hover:text-white hover:border-[#5996FF]/40 rounded-full flex items-center transition-all cursor-pointer"
+            >
+              <span className={`w-1.5 h-1.5 rounded-full mr-2 ${wsConnected ? 'bg-emerald-500' : 'bg-red-500'}`} />
+              {backendHost}
+            </button>
           </div>
         </div>
       </header>
@@ -1097,6 +1112,8 @@ export default function App() {
         )}
 
       </main>
+
+      <BackendSettings open={showBackendSettings} onClose={() => setShowBackendSettings(false)} />
     </div>
   );
 }

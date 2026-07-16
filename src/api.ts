@@ -1,6 +1,12 @@
 // api.ts — talks to backend/main.py (FastAPI + ROS2 bridge, default http://localhost:8000)
 
-export const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
+import { resolveBackendUrl } from './backendUrl';
+
+// Read once at module load. The operator can repoint this at another machine
+// via the Backend settings panel, which saves to localStorage and reloads the
+// app — so every consumer (fetch, WebSocket hook, camera <img>) picks up the
+// new address together without needing to be individually reactive.
+export const API_BASE = resolveBackendUrl();
 export const WS_BASE = API_BASE.replace(/^http/, 'ws');
 
 export interface UploadWaypoint {
