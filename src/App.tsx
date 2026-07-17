@@ -469,8 +469,18 @@ export default function App() {
         await resetMission();
       } catch { /* backend unreachable — local re-arm only */ }
       lastTrailPointRef.current = null;
+      // Clear the flown plan from the map/UI too: leaving the old stops
+      // active made the next session (Test Bench or a new mission) look —
+      // and, before the ROS-side CLEAR-on-COMPLETE fix, actually act — as
+      // if the previous waypoints were still the target. Every new mission
+      // starts from a freshly marked plan.
+      setWaypoints([]);
+      setDestLoc(null);
+      setPlannedPath([]);
+      setDirectPath([]);
+      setCurrentPathIndex(0);
       setFlightState(FlightState.IDLE);
-      addNewLogEntry(FlightState.IDLE, 'Mission closed out — ready to launch the next one.');
+      addNewLogEntry(FlightState.IDLE, 'Mission closed out — previous waypoints cleared, ready to plan the next one.');
     }, 4000);
     return () => clearTimeout(timer);
   }, [flightState, droneStatus]);

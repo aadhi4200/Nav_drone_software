@@ -298,6 +298,13 @@ def reset():
     if ros_node:
         msg = String(); msg.data = "RESET"
         ros_node.cmd_pub.publish(msg)
+        # Drop the cached plan too: /mission/start re-publishes
+        # uploaded_waypoints right before START, and /mission/status echoes
+        # them for page-reload hydration — after a completed mission both
+        # would resurrect the previous waypoints (mission_manager and
+        # waypoint_navigator already cleared theirs on COMPLETE/ABORT).
+        ros_node.uploaded_waypoints = []
+        ros_node.last_speed_ms = None
     return {"status": "ok"}
 
 
